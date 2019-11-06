@@ -1,4 +1,4 @@
-# WalkSAT.py
+# WalkSAT
 Generate 3-SAT problems and use WalkSAT to solve some of them
 
 # Usage
