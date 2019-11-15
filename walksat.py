@@ -1,22 +1,21 @@
 import matplotlib.pyplot as plt
-import csv
-import sys
-import math
+import numpy as np
 import copy
 import subprocess
 import statistics
 from random import *
 from time import time
 
-
-# TODO: Have some sort of data structure here that holds each WalkSAT result numbers
-# e.g. number of clauses, number of "flips", did it terminate successfuly?
+c_n = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+median_flips = []
+num_successes = []
 
 NUM_VARIABLES = 20
 
 def run():
     init_problem_generator()
     generate_and_solve_problems()
+    plot_results()
     clean_up()
 
 # Calls `make` on the terminal to produce the makewff binary executable
@@ -28,7 +27,7 @@ def init_problem_generator():
 # number of generated 3SAT problems should therefore be 500.
 def generate_and_solve_problems():
     num_clauses = 20
-    while num_clauses < 200:
+    while num_clauses <= 200:
         set_flips = []
         set_successes = 0
         print(f'** About to run WalkSAT 50 times with N = {NUM_VARIABLES} and C = {num_clauses} **')
@@ -38,8 +37,17 @@ def generate_and_solve_problems():
             if (success):
                 set_flips.append(num_flips)
                 set_successes += 1
+
+        set_median_flips = float('NaN')
+        if len(set_flips) > 0:
+            set_median_flips = statistics.median(set_flips)
+
+        # Save data of this set of 50 WalkSAT runs
+        median_flips.append(set_median_flips)
+        num_successes.append(set_successes)
+
         print(f'** Finished running WalkSAT 50 times with N = {NUM_VARIABLES} and C = {num_clauses} **')
-        print(f'** Results: Median flips = {statistics.median(set_flips)}, Number of successes = {set_successes}\n\n')
+        print(f'** Results: Median flips = {set_median_flips}, Number of successes = {set_successes}\n\n')
         num_clauses += 20
 
 # Calls makewff to generate a 3-SAT problem with 20 variables and the given
@@ -135,6 +143,21 @@ def parse(problem):
         parsed_problem.append(parsed_clause)
 
     return parsed_problem
+
+# Plots the results of the WalkSAT runs
+def plot_results():
+    plot(c_n, median_flips, 'Median Flips vs C / N', 'Median Flips')
+    plot(c_n, num_successes, '# of Successes vs C / N', '# of Successes')
+
+# Plots the given x, y into a graph
+def plot(x, y, title, y_label):
+    plt.plot(np.array(x), np.array(y), 'bo', label=y_label)
+    plt.xticks(x, x)
+    plt.xlabel('C / N')
+    plt.ylabel(y_label)
+    plt.title(title)
+    plt.legend()
+    plt.show()
 
 # Calls `make clean` on the terminal to clean up makewff binary executable
 def clean_up():
